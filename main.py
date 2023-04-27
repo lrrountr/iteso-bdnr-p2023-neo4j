@@ -100,14 +100,54 @@ class TwitterApp(object):
                 self._create_user_to_tweet_relationship(r["handle"], r["tweet_id"], r["date"])
                 self._create_user_to_country_relationship(r["handle"], r["country"])
 
+
+    def _search_user(self, tx, username):
+        res = tx.run("""
+            MATCH (u:User)
+            WHERE u.username=$username
+            RETURN u
+        """, username=username)
+        records = list(res)
+        summary = res.consume()
+        return records, summary
+
+    def search_user(self, username):
+        with self.driver.session() as session:
+            records, summary = session.execute_read(self._search_user, username)
+            print("Results:", len(records))
+            print("Summary Query:", summary.query)
+            print("Transaction Time (ms):", summary.result_available_after)
+            for user in records:
+                print(user.data())
+
+
+def print_menu():
+    mm_option = {
+        1: "Load graph data",
+        2: "Search user",
+        3: "Exit",
+    }
+    for key in mm_option.keys():
+        print(key, '--', mm_option[key])
+
+
 if __name__ == "__main__":
     # Read connection env variables
     neo4j_uri = os.getenv('NEO4J_URI', 'bolt://localhost:7687')
     neo4j_user = os.getenv('NEO4J_USER', 'neo4j')
-    neo4j_password = os.getenv('NEO4J_PASSWORD', '')
+    neo4j_password = os.getenv('NEO4J_PASSWORD', 'iteso@123')
 
     twitter = TwitterApp(neo4j_uri, neo4j_user, neo4j_password)
-    twitter.init("data/tweets.csv")
-
-    twitter.close()
+    print("Twitter App Graph")
+    while(True):
+        print_menu()
+        option = int(input("Select an option: "))
+        if option == 1:
+            twitter.init("data/tweets.csv")
+        elif option == 2:
+            username = input("Enter username: ")
+            twitter.search_user(username)
+        elif option == 3:
+            twitter.close()
+            exit(0)
 

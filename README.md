@@ -33,6 +33,6 @@ python3 main.py
 
 ```
 docker cp gds/neo4j.conf neo4j:/var/lib/neo4j/conf/
-docker cp gds/neo4j-graph-data-science-2.2.2.jar neo4j:/var/lib/neo4j/plugins/
+docker cp gds/neo4j-graph-data-science-2.3.3.jar neo4j:/var/lib/neo4j/plugins/
 docker restart neo4j
 ```
